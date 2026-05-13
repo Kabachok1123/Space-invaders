@@ -5,6 +5,8 @@ import tkinter as tk
 
 from config import (
     BACKGROUND_COLOR,
+    BULLET_COLOR,
+    ENEMY_COLOR,
     GROUND_COLOR,
     PLAYER_ACCENT_COLOR,
     PLAYER_COLOR,
@@ -14,7 +16,7 @@ from config import (
     STAR_COUNT,
     STAR_RANDOM_SEED,
 )
-from models import Player, Star
+from models import Bullet, Enemy, Player, Star
 
 
 def create_stars() -> list[Star]:
@@ -94,6 +96,73 @@ def draw_player(canvas: tk.Canvas, player: Player) -> None:
         player.right,
         player.bottom,
         fill=PLAYER_ACCENT_COLOR,
+        outline="",
+        tags="frame",
+    )
+
+
+def draw_bullets(canvas: tk.Canvas, bullets: list[Bullet]) -> None:
+    for bullet in bullets:
+        canvas.create_rectangle(
+            bullet.x,
+            bullet.y,
+            bullet.right,
+            bullet.bottom,
+            fill=BULLET_COLOR,
+            outline="",
+            tags="frame",
+        )
+
+
+def draw_enemies(canvas: tk.Canvas, enemies: list[Enemy]) -> None:
+    for enemy in enemies:
+        if enemy.is_alive:
+            draw_enemy(canvas, enemy)
+
+
+def draw_enemy(canvas: tk.Canvas, enemy: Enemy) -> None:
+    canvas.create_rectangle(
+        enemy.x + 5,
+        enemy.y + 6,
+        enemy.right - 5,
+        enemy.bottom - 4,
+        fill=ENEMY_COLOR,
+        outline="",
+        tags="frame",
+    )
+    canvas.create_rectangle(
+        enemy.x,
+        enemy.y + 12,
+        enemy.x + 9,
+        enemy.bottom,
+        fill=ENEMY_COLOR,
+        outline="",
+        tags="frame",
+    )
+    canvas.create_rectangle(
+        enemy.right - 9,
+        enemy.y + 12,
+        enemy.right,
+        enemy.bottom,
+        fill=ENEMY_COLOR,
+        outline="",
+        tags="frame",
+    )
+    canvas.create_rectangle(
+        enemy.x + 11,
+        enemy.y,
+        enemy.x + 16,
+        enemy.y + 7,
+        fill=ENEMY_COLOR,
+        outline="",
+        tags="frame",
+    )
+    canvas.create_rectangle(
+        enemy.right - 16,
+        enemy.y,
+        enemy.right - 11,
+        enemy.y + 7,
+        fill=ENEMY_COLOR,
         outline="",
         tags="frame",
     )
