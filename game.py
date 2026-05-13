@@ -18,11 +18,12 @@ from config import (
     PLAYER_BOTTOM_MARGIN,
     PLAYER_HEIGHT,
     PLAYER_WIDTH,
+    POINTS_PER_ENEMY,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
 )
-from drawing import create_stars, draw_background, draw_bullets, draw_enemies, draw_player
-from models import Bullet, Enemy, Player, Star, rectangles_intersect
+from drawing import draw_background, draw_bullets, draw_enemies, draw_player, draw_score
+from models import Bullet, Enemy, Player, rectangles_intersect
 
 
 class SpaceInvadersGame:
@@ -40,10 +41,10 @@ class SpaceInvadersGame:
         )
         self.canvas.pack()
 
-        self.stars = create_stars()
         self.player = create_player()
         self.bullets: list[Bullet] = []
         self.enemies = create_enemies()
+        self.score = 0
         self.pressed_keys: set[str] = set()
         self.last_frame_time = time.perf_counter()
 
@@ -103,6 +104,7 @@ class SpaceInvadersGame:
                 active_bullets.append(bullet)
             else:
                 hit_enemy.is_alive = False
+                self.score += POINTS_PER_ENEMY
         self.bullets = active_bullets
 
     def get_player_direction(self) -> int:
@@ -115,10 +117,11 @@ class SpaceInvadersGame:
 
     def draw(self) -> None:
         self.canvas.delete("frame")
-        draw_background(self.canvas, self.stars)
+        draw_background(self.canvas)
         draw_enemies(self.canvas, self.enemies)
         draw_bullets(self.canvas, self.bullets)
         draw_player(self.canvas, self.player)
+        draw_score(self.canvas, self.score)
 
 
 def create_player() -> Player:

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import random
 import tkinter as tk
 
 from config import (
@@ -12,43 +11,26 @@ from config import (
     PLAYER_COLOR,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
-    STAR_COLORS,
-    STAR_COUNT,
-    STAR_RANDOM_SEED,
+    TEXT_COLOR,
 )
-from models import Bullet, Enemy, Player, Star
+from models import Bullet, Enemy, Player
 
 
-def create_stars() -> list[Star]:
-    random_generator = random.Random(STAR_RANDOM_SEED)
-    stars = []
-    for _ in range(STAR_COUNT):
-        stars.append(create_star(random_generator))
-    return stars
-
-
-def create_star(random_generator: random.Random) -> Star:
-    return Star(
-        x=random_generator.randrange(12, SCREEN_WIDTH - 12),
-        y=random_generator.randrange(20, SCREEN_HEIGHT - 75),
-        size=random_generator.choice((1, 1, 1, 2)),
-        color=random_generator.choice(STAR_COLORS),
-    )
-
-
-def draw_background(canvas: tk.Canvas, stars: list[Star]) -> None:
+def draw_background(canvas: tk.Canvas) -> None:
     canvas.create_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, fill=BACKGROUND_COLOR, width=0, tags="frame")
-    for star in stars:
-        canvas.create_rectangle(
-            star.x,
-            star.y,
-            star.x + star.size,
-            star.y + star.size,
-            fill=star.color,
-            outline="",
-            tags="frame",
-        )
     draw_ground_line(canvas)
+
+
+def draw_score(canvas: tk.Canvas, score: int) -> None:
+    canvas.create_text(
+        24,
+        22,
+        text=f"SCORE: {score}",
+        anchor="w",
+        fill=TEXT_COLOR,
+        font=("Consolas", 16, "bold"),
+        tags="frame",
+    )
 
 
 def draw_ground_line(canvas: tk.Canvas) -> None:

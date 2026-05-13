@@ -2,15 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from config import BULLET_SPEED, PLAYER_SPEED, SCREEN_HEIGHT, SCREEN_WIDTH, SIDE_PADDING
-
-
-@dataclass
-class Star:
-    x: int
-    y: int
-    size: int
-    color: str
+from config import BULLET_SPEED, PLAYER_SPEED, SCREEN_WIDTH, SIDE_PADDING
 
 
 @dataclass
