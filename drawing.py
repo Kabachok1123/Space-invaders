@@ -1,11 +1,9 @@
-from __future__ import annotations
-
 import tkinter as tk
 
 from config import (
     BACKGROUND_COLOR,
     BULLET_COLOR,
-    ENEMY_COLOR,
+    ENEMY_BULLET_COLOR,
     GROUND_COLOR,
     PLAYER_ACCENT_COLOR,
     PLAYER_COLOR,
@@ -13,7 +11,7 @@ from config import (
     SCREEN_WIDTH,
     TEXT_COLOR,
 )
-from models import Bullet, Enemy, Player
+from models import Bullet, Enemy, EnemyBullet, Player
 
 
 def draw_background(canvas: tk.Canvas) -> None:
@@ -29,6 +27,30 @@ def draw_score(canvas: tk.Canvas, score: int) -> None:
         anchor="w",
         fill=TEXT_COLOR,
         font=("Consolas", 16, "bold"),
+        tags="frame",
+    )
+
+
+def draw_lives(canvas: tk.Canvas, lives: int) -> None:
+    canvas.create_text(
+        SCREEN_WIDTH - 24,
+        22,
+        text=f"LIVES: {lives}",
+        anchor="e",
+        fill=TEXT_COLOR,
+        font=("Consolas", 16, "bold"),
+        tags="frame",
+    )
+
+
+def draw_game_over(canvas: tk.Canvas) -> None:
+    canvas.create_text(
+        SCREEN_WIDTH / 2,
+        SCREEN_HEIGHT / 2,
+        text="GAME OVER",
+        anchor="center",
+        fill=TEXT_COLOR,
+        font=("Consolas", 42, "bold"),
         tags="frame",
     )
 
@@ -96,6 +118,19 @@ def draw_bullets(canvas: tk.Canvas, bullets: list[Bullet]) -> None:
         )
 
 
+def draw_enemy_bullets(canvas: tk.Canvas, bullets: list[EnemyBullet]) -> None:
+    for bullet in bullets:
+        canvas.create_rectangle(
+            bullet.x,
+            bullet.y,
+            bullet.right,
+            bullet.bottom,
+            fill=ENEMY_BULLET_COLOR,
+            outline="",
+            tags="frame",
+        )
+
+
 def draw_enemies(canvas: tk.Canvas, enemies: list[Enemy]) -> None:
     for enemy in enemies:
         if enemy.is_alive:
@@ -108,7 +143,7 @@ def draw_enemy(canvas: tk.Canvas, enemy: Enemy) -> None:
         enemy.y + 6,
         enemy.right - 5,
         enemy.bottom - 4,
-        fill=ENEMY_COLOR,
+        fill=enemy.color,
         outline="",
         tags="frame",
     )
@@ -117,7 +152,7 @@ def draw_enemy(canvas: tk.Canvas, enemy: Enemy) -> None:
         enemy.y + 12,
         enemy.x + 9,
         enemy.bottom,
-        fill=ENEMY_COLOR,
+        fill=enemy.color,
         outline="",
         tags="frame",
     )
@@ -126,7 +161,7 @@ def draw_enemy(canvas: tk.Canvas, enemy: Enemy) -> None:
         enemy.y + 12,
         enemy.right,
         enemy.bottom,
-        fill=ENEMY_COLOR,
+        fill=enemy.color,
         outline="",
         tags="frame",
     )
@@ -135,7 +170,7 @@ def draw_enemy(canvas: tk.Canvas, enemy: Enemy) -> None:
         enemy.y,
         enemy.x + 16,
         enemy.y + 7,
-        fill=ENEMY_COLOR,
+        fill=enemy.color,
         outline="",
         tags="frame",
     )
@@ -144,7 +179,7 @@ def draw_enemy(canvas: tk.Canvas, enemy: Enemy) -> None:
         enemy.y,
         enemy.right - 11,
         enemy.y + 7,
-        fill=ENEMY_COLOR,
+        fill=enemy.color,
         outline="",
         tags="frame",
     )

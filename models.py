@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 
-from config import BULLET_SPEED, PLAYER_SPEED, SCREEN_WIDTH, SIDE_PADDING
+from config import BULLET_SPEED, ENEMY_BULLET_SPEED, SCREEN_HEIGHT, PLAYER_SPEED, SCREEN_WIDTH, SIDE_PADDING
 
 
 @dataclass
@@ -53,11 +51,34 @@ class Bullet:
 
 
 @dataclass
+class EnemyBullet:
+    x: float
+    y: float
+    width: int
+    height: int
+
+    @property
+    def right(self) -> float:
+        return self.x + self.width
+
+    @property
+    def bottom(self) -> float:
+        return self.y + self.height
+
+    def move(self, delta_time: float) -> None:
+        self.y += ENEMY_BULLET_SPEED * delta_time
+
+    def is_outside_screen(self) -> bool:
+        return self.y > SCREEN_HEIGHT
+
+
+@dataclass
 class Enemy:
     x: float
     y: float
     width: int
     height: int
+    color: str
     is_alive: bool = True
 
     @property
@@ -69,7 +90,7 @@ class Enemy:
         return self.y + self.height
 
 
-def rectangles_intersect(first: Bullet, second: Enemy) -> bool:
+def rectangles_intersect(first, second) -> bool:
     return (
         first.x < second.right
         and first.right > second.x
