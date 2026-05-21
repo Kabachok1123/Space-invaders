@@ -1,4 +1,3 @@
-import random
 import time
 import tkinter as tk
 from typing import Optional
@@ -7,35 +6,31 @@ from config import (
     BACKGROUND_COLOR,
     BULLET_HEIGHT,
     BULLET_WIDTH,
-    BUNKER_DAMAGE_RADIUS,
-    BUNKER_HIT_PADDING,
-    ENEMY_BULLET_HEIGHT,
-    ENEMY_BULLET_WIDTH,
-    ENEMY_KILL_SPEED,
-    ENEMY_LEVEL_SPEED,
-    ENEMY_KILL_SHOT_SPEEDUP,
-    ENEMY_MIN_SHOT_INTERVAL,
-    ENEMY_MOVE_DOWN_STEP,
-    ENEMY_MOVE_SPEED,
     ENEMY_SHOT_INTERVAL,
     FPS_DELAY_MS,
-    MYSTERY_HEIGHT,
     MYSTERY_POINTS,
     MYSTERY_SPAWN_TIME,
-    MYSTERY_SPEED,
-    MYSTERY_TOP,
-    MYSTERY_WIDTH,
     PLAYER_LIVES,
     POINTS_PER_ENEMY,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
-    SIDE_PADDING,
 )
+from collisions import damage_bunker_by_enemy_bullet, find_hit_enemy
 from drawing import GameRenderer
+from enemy_logic import (
+    calculate_enemy_shot_interval,
+    calculate_enemy_speed,
+    choose_enemy_shooter,
+    create_enemy_bullet,
+    enemies_reached_side,
+    get_alive_enemies,
+    move_enemies_down,
+    move_enemies_side,
+)
 from geometry import rectangles_intersect
 from leaderboard import Leaderboard
-from level import create_bunkers, create_enemies, create_player
-from models import BunkerBlock, Bullet, Enemy, EnemyBullet, MysteryShip
+from level import create_bunkers, create_enemies, create_mystery_ship, create_player
+from models import Bullet, EnemyBullet, MysteryShip
 
 
 class SpaceInvadersGame:
@@ -147,16 +142,16 @@ class SpaceInvadersGame:
         alive_enemies = get_alive_enemies(self.enemies)
         if not alive_enemies:
             return
-        enemy_shift = self.enemy_direction * self.current_enemy_speed() * delta_time
+        enemy_shift = self.enemy_direction * self.get_enemy_speed() * delta_time
         if enemies_reached_side(alive_enemies, enemy_shift):
             self.enemy_direction *= -1
             move_enemies_down(alive_enemies)
         else:
             move_enemies_side(alive_enemies, enemy_shift)
 
-    def current_enemy_speed(self) -> float:
-        killed_enemies = self.total_enemies - len(get_alive_enemies(self.enemies))
-        return ENEMY_MOVE_SPEED + (self.level - 1) * ENEMY_LEVEL_SPEED + killed_enemies * ENEMY_KILL_SPEED
+    def get_enemy_speed(self) -> float:
+        alive_count = len(get_alive_enemies(self.enemies))
+        return calculate_enemy_speed(self.level, self.total_enemies, alive_count)
 
     def update_mystery_ship(self, delta_time: float) -> None:
         if self.mystery_ship is not None:
@@ -262,99 +257,3 @@ class SpaceInvadersGame:
             self.is_game_over,
             self.leaderboard.entries,
         )
-
-
-def get_alive_enemies(enemies: list[Enemy]) -> list[Enemy]:
-    return [enemy for enemy in enemies if enemy.is_alive]
-
-
-def enemies_reached_side(enemies: list[Enemy], enemy_shift: float) -> bool:
-    left_side = min(enemy.x for enemy in enemies)
-    right_side = max(enemy.right for enemy in enemies)
-    return left_side + enemy_shift < SIDE_PADDING or right_side + enemy_shift > SCREEN_WIDTH - SIDE_PADDING
-
-
-def move_enemies_side(enemies: list[Enemy], enemy_shift: float) -> None:
-    for enemy in enemies:
-        enemy.x += enemy_shift
-
-
-def move_enemies_down(enemies: list[Enemy]) -> None:
-    for enemy in enemies:
-        enemy.y += ENEMY_MOVE_DOWN_STEP
-
-
-def choose_enemy_shooter(enemies: list[Enemy]) -> Optional[Enemy]:
-    alive_enemies = get_alive_enemies(enemies)
-    if not alive_enemies:
-        return None
-    return random.choice(alive_enemies)
-
-
-def calculate_enemy_shot_interval(level: int, total_enemies: int, alive_enemies: int) -> float:
-    killed_enemies = max(0, total_enemies - alive_enemies)
-    level_speedup = max(0, level - 1) * 0.08
-    kill_speedup = killed_enemies * ENEMY_KILL_SHOT_SPEEDUP
-    interval = ENEMY_SHOT_INTERVAL - level_speedup - kill_speedup
-    return max(ENEMY_MIN_SHOT_INTERVAL, interval)
-
-
-def create_enemy_bullet(enemy: Enemy) -> EnemyBullet:
-    bullet_x = enemy.x + enemy.width / 2 - ENEMY_BULLET_WIDTH / 2
-    bullet_y = enemy.bottom
-    return EnemyBullet(bullet_x, bullet_y, ENEMY_BULLET_WIDTH, ENEMY_BULLET_HEIGHT)
-
-
-def create_mystery_ship() -> MysteryShip:
-    direction = random.choice([-1, 1])
-    x = -MYSTERY_WIDTH if direction > 0 else SCREEN_WIDTH + MYSTERY_WIDTH
-    speed = MYSTERY_SPEED * direction
-    return MysteryShip(x, MYSTERY_TOP, MYSTERY_WIDTH, MYSTERY_HEIGHT, speed)
-
-
-def find_hit_enemy(bullet: Bullet, enemies: list[Enemy]) -> Optional[Enemy]:
-    for enemy in enemies:
-        if enemy.is_alive and rectangles_intersect(bullet, enemy):
-            return enemy
-    return None
-
-
-def damage_bunker_by_enemy_bullet(bullet: EnemyBullet, blocks: list[BunkerBlock]) -> bool:
-    hit_block = find_first_block_on_bullet_path(bullet, blocks)
-    if hit_block is None:
-        return False
-
-    damage_blocks_near_hit(hit_block, blocks)
-    blocks[:] = [block for block in blocks if block.hp > 0]
-    return True
-
-
-def find_first_block_on_bullet_path(bullet: EnemyBullet, blocks: list[BunkerBlock]) -> Optional[BunkerBlock]:
-    touched_blocks = [block for block in blocks if bullet_path_intersects_block(bullet, block)]
-    if not touched_blocks:
-        return None
-    return min(touched_blocks, key=lambda block: block.y)
-
-
-def bullet_path_intersects_block(bullet: EnemyBullet, block: BunkerBlock) -> bool:
-    bullet_left = bullet.x - BUNKER_HIT_PADDING
-    bullet_right = bullet.right + BUNKER_HIT_PADDING
-    path_top = min(bullet.previous_y, bullet.y)
-    path_bottom = max(bullet.previous_bottom, bullet.bottom)
-
-    return (
-        bullet_left < block.right
-        and bullet_right > block.x
-        and path_top < block.bottom
-        and path_bottom > block.y
-    )
-
-
-def damage_blocks_near_hit(hit_block: BunkerBlock, blocks: list[BunkerBlock]) -> None:
-    hit_center_x = hit_block.x + hit_block.size / 2
-    hit_center_y = hit_block.y + hit_block.size / 2
-    for block in blocks:
-        block_center_x = block.x + block.size / 2
-        block_center_y = block.y + block.size / 2
-        if abs(block_center_x - hit_center_x) <= BUNKER_DAMAGE_RADIUS and abs(block_center_y - hit_center_y) <= BUNKER_DAMAGE_RADIUS:
-            block.damage()

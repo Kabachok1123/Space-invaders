@@ -1,3 +1,5 @@
+import random
+
 from config import (
     BUNKER_BLOCK_HP,
     BUNKER_BLOCK_SIZE,
@@ -12,13 +14,17 @@ from config import (
     ENEMY_TOP_MARGIN,
     ENEMY_VERTICAL_GAP,
     ENEMY_WIDTH,
+    MYSTERY_HEIGHT,
+    MYSTERY_SPEED,
+    MYSTERY_TOP,
+    MYSTERY_WIDTH,
     PLAYER_BOTTOM_MARGIN,
     PLAYER_HEIGHT,
     PLAYER_WIDTH,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
 )
-from models import BunkerBlock, Enemy, Player
+from models import BunkerBlock, Enemy, MysteryShip, Player
 
 
 def create_player() -> Player:
@@ -64,3 +70,10 @@ def add_bunker_blocks(blocks: list[BunkerBlock], pattern: list[str], start_x: fl
                 block_x = start_x + column_index * BUNKER_BLOCK_SIZE
                 block_y = BUNKER_TOP + row_index * BUNKER_BLOCK_SIZE
                 blocks.append(BunkerBlock(block_x, block_y, BUNKER_BLOCK_SIZE, BUNKER_BLOCK_HP))
+
+
+def create_mystery_ship() -> MysteryShip:
+    direction = random.choice([-1, 1])
+    x = -MYSTERY_WIDTH if direction > 0 else SCREEN_WIDTH + MYSTERY_WIDTH
+    speed = MYSTERY_SPEED * direction
+    return MysteryShip(x, MYSTERY_TOP, MYSTERY_WIDTH, MYSTERY_HEIGHT, speed)
