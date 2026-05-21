@@ -1,6 +1,14 @@
 from dataclasses import dataclass
 
-from config import BULLET_SPEED, ENEMY_BULLET_SPEED, SCREEN_HEIGHT, PLAYER_SPEED, SCREEN_WIDTH, SIDE_PADDING
+from config import (
+    BULLET_SPEED,
+    ENEMY_BULLET_SPEED,
+    PLAYER_SPEED,
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH,
+    SIDE_PADDING,
+)
+from geometry import clamp
 
 
 @dataclass
@@ -56,6 +64,7 @@ class EnemyBullet:
     y: float
     width: int
     height: int
+    previous_y: float = -1
 
     @property
     def right(self) -> float:
@@ -65,7 +74,16 @@ class EnemyBullet:
     def bottom(self) -> float:
         return self.y + self.height
 
+    @property
+    def previous_bottom(self) -> float:
+        return self.previous_y + self.height
+
+    def __post_init__(self) -> None:
+        if self.previous_y < 0:
+            self.previous_y = self.y
+
     def move(self, delta_time: float) -> None:
+        self.previous_y = self.y
         self.y += ENEMY_BULLET_SPEED * delta_time
 
     def is_outside_screen(self) -> bool:
@@ -90,14 +108,49 @@ class Enemy:
         return self.y + self.height
 
 
-def rectangles_intersect(first, second) -> bool:
-    return (
-        first.x < second.right
-        and first.right > second.x
-        and first.y < second.bottom
-        and first.bottom > second.y
-    )
+@dataclass
+class BunkerBlock:
+    x: float
+    y: float
+    size: int
+    hp: int
+
+    @property
+    def width(self) -> int:
+        return self.size
+
+    @property
+    def height(self) -> int:
+        return self.size
+
+    @property
+    def right(self) -> float:
+        return self.x + self.size
+
+    @property
+    def bottom(self) -> float:
+        return self.y + self.size
+
+    def damage(self) -> None:
+        self.hp -= 1
 
 
-def clamp(value: float, min_value: float, max_value: float) -> float:
-    return max(min_value, min(value, max_value))
+@dataclass
+class MysteryShip:
+    x: float
+    y: float
+    width: int
+    height: int
+    speed: float
+    is_alive: bool = True
+
+    @property
+    def right(self) -> float:
+        return self.x + self.width
+
+    @property
+    def bottom(self) -> float:
+        return self.y + self.height
+
+    def move(self, delta_time: float) -> None:
+        self.x += self.speed * delta_time
