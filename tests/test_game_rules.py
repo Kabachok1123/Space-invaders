@@ -1,4 +1,3 @@
-from bunkers import damage_bunker_by_enemy_bullet
 from config import (
     ENEMY_BULLET_HEIGHT,
     ENEMY_BULLET_WIDTH,
@@ -11,6 +10,7 @@ from game import (
     calculate_enemy_shot_interval,
     choose_enemy_shooter,
     create_enemy_bullet,
+    damage_bunker_by_enemy_bullet,
     enemies_reached_side,
     find_hit_enemy,
     get_alive_enemies,
