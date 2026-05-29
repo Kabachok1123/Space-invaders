@@ -81,6 +81,7 @@ class SpaceInvadersGame:
         self.level = 1
         self.score = 0
         self.lives = PLAYER_LIVES
+        self.is_paused = False
         self.is_game_over = False
         self.score_saved = False
         self.setup_level()
@@ -121,6 +122,9 @@ class SpaceInvadersGame:
             return
         if not self.is_started:
             return
+        if key == "p" and not self.is_game_over:
+            self.is_paused = not self.is_paused
+            return
         if key == "space" and not self.is_game_over:
             self.shoot()
         if key in {"return", "kp_enter"} and self.is_game_over:
@@ -137,15 +141,17 @@ class SpaceInvadersGame:
         if not self.is_started:
             self.renderer.draw_start_screen(self.leaderboard.entries)
         elif not self.is_game_over:
-            self.update_player(delta_time)
-            self.update_enemies(delta_time)
-            self.update_mystery_ship(delta_time)
-            self.update_bullets(delta_time)
-            self.update_enemy_bullets(delta_time)
-            self.update_enemy_shooting(delta_time)
-            self.handle_collisions()
-            self.check_level_complete()
-            self.check_enemy_reached_player()
+            if not self.is_paused:
+                self.update_player(delta_time)
+                self.update_enemies(delta_time)
+                self.update_mystery_ship(delta_time)
+                self.update_bullets(delta_time)
+                self.update_enemy_bullets(delta_time)
+                self.update_enemy_shooting(delta_time)
+                self.handle_collisions()
+                self.check_level_complete()
+                self.check_enemy_reached_player()
+
             self.draw()
         elif self.is_game_over:
             self.draw()
@@ -291,5 +297,6 @@ class SpaceInvadersGame:
             self.lives,
             self.level,
             self.is_game_over,
+            self.is_paused,
             self.leaderboard.entries,
         )
