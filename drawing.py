@@ -46,6 +46,19 @@ class GameRenderer:
         if is_game_over:
             self.draw_game_over(leaderboard_entries)
 
+    def draw_start_screen(self, leaderboard_entries) -> None:
+        self.canvas.delete("frame")
+        self.draw_background()
+        self.canvas.create_text(SCREEN_WIDTH / 2, 220, text="SPACE INVADERS", anchor="center", fill=TEXT_COLOR, font=("Consolas", 42, "bold"), tags="frame")
+        self.canvas.create_text(SCREEN_WIDTH / 2, 305, text="ENTER YOUR NAME", anchor="center", fill=TEXT_COLOR, font=("Consolas", 18, "bold"), tags="frame")
+        self.canvas.create_text(SCREEN_WIDTH / 2, 410, text="PRESS ENTER TO START", anchor="center", fill=TEXT_COLOR, font=("Consolas", 14, "bold"), tags="frame")
+        self.canvas.create_text(SCREEN_WIDTH / 2, 470, text="LEADERBOARD", anchor="center", fill=TEXT_COLOR, font=("Consolas", 18, "bold"), tags="frame")
+        if not leaderboard_entries:
+            self.canvas.create_text(SCREEN_WIDTH / 2, 504, text="NO SCORES YET", anchor="center", fill=TEXT_COLOR, font=("Consolas", 14), tags="frame")
+        for index, entry in enumerate(leaderboard_entries, start=1):
+            text = f"{index}. {entry.name:<10} {entry.score:03d}  L{entry.level}"
+            self.canvas.create_text(SCREEN_WIDTH / 2, 494 + index * 24, text=text, anchor="center", fill=TEXT_COLOR, font=("Consolas", 14), tags="frame")
+
     def draw_background(self) -> None:
         self.canvas.create_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, fill=BACKGROUND_COLOR, width=0, tags="frame")
         ground_y = SCREEN_HEIGHT - 35

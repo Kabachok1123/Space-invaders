@@ -49,6 +49,21 @@ class SpaceInvadersGame:
         self.canvas.pack()
         self.renderer = GameRenderer(self.canvas)
         self.leaderboard = Leaderboard()
+        self.player_name = "PLAYER"
+        self.is_started = False
+        self.name_entry = tk.Entry(
+            self.root,
+            width=18,
+            justify="center",
+            font=("Consolas", 18, "bold"),
+            bg="#10182c",
+            fg="#d7f9ff",
+            insertbackground="#d7f9ff",
+            relief="flat",
+        )
+        self.name_entry.bind("<Return>", self.start_game)
+        self.name_entry.bind("<KP_Enter>", self.start_game)
+        self.name_entry.bind("<Escape>", lambda event: self.root.destroy())
 
         self.pressed_keys: set[str] = set()
         self.last_frame_time = time.perf_counter()
@@ -57,6 +72,7 @@ class SpaceInvadersGame:
         self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
 
         self.reset_game()
+        self.show_name_entry()
 
     def reset_game(self) -> None:
         self.player = create_player()
@@ -68,6 +84,19 @@ class SpaceInvadersGame:
         self.is_game_over = False
         self.score_saved = False
         self.setup_level()
+
+    def show_name_entry(self) -> None:
+        self.name_entry.delete(0, tk.END)
+        self.name_entry.place(x=SCREEN_WIDTH / 2, y=360, anchor="center")
+        self.name_entry.focus_set()
+
+    def start_game(self, event: Optional[tk.Event] = None) -> None:
+        name = self.name_entry.get().strip()
+        self.player_name = name if name else "PLAYER"
+        self.name_entry.place_forget()
+        self.is_started = True
+        self.last_frame_time = time.perf_counter()
+        self.canvas.focus_set()
 
     def setup_level(self) -> None:
         self.enemies = create_enemies()
@@ -87,12 +116,15 @@ class SpaceInvadersGame:
     def on_key_press(self, event: tk.Event) -> None:
         key = event.keysym.lower()
         self.pressed_keys.add(key)
+        if key == "escape":
+            self.root.destroy()
+            return
+        if not self.is_started:
+            return
         if key == "space" and not self.is_game_over:
             self.shoot()
         if key in {"return", "kp_enter"} and self.is_game_over:
             self.reset_game()
-        if key == "escape":
-            self.root.destroy()
 
     def on_key_release(self, event: tk.Event) -> None:
         self.pressed_keys.discard(event.keysym.lower())
@@ -102,7 +134,9 @@ class SpaceInvadersGame:
         delta_time = current_time - self.last_frame_time
         self.last_frame_time = current_time
 
-        if not self.is_game_over:
+        if not self.is_started:
+            self.renderer.draw_start_screen(self.leaderboard.entries)
+        elif not self.is_game_over:
             self.update_player(delta_time)
             self.update_enemies(delta_time)
             self.update_mystery_ship(delta_time)
@@ -112,7 +146,9 @@ class SpaceInvadersGame:
             self.handle_collisions()
             self.check_level_complete()
             self.check_enemy_reached_player()
-        self.draw()
+            self.draw()
+        elif self.is_game_over:
+            self.draw()
 
         if self.root.winfo_exists():
             self.root.after(FPS_DELAY_MS, self.update)
@@ -221,7 +257,7 @@ class SpaceInvadersGame:
     def finish_game(self) -> None:
         self.is_game_over = True
         if not self.score_saved:
-            self.leaderboard.add_score("PLAYER", self.score, self.level)
+            self.leaderboard.add_score(self.player_name, self.score, self.level)
             self.score_saved = True
 
     def check_level_complete(self) -> None:

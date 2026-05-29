@@ -20,7 +20,8 @@ class Leaderboard:
     def add_score(self, name: str, score: int, level: int) -> None:
         if score <= 0:
             return
-        self.entries.append(ScoreEntry(name[:10].upper(), score, level))
+        saved_name = name.strip()[:10].upper() or "PLAYER"
+        self.entries.append(ScoreEntry(saved_name, score, level))
         self.entries = sorted(self.entries, key=lambda entry: entry.score, reverse=True)[:LEADERBOARD_LIMIT]
         self.save()
 
